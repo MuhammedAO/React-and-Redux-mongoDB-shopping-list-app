@@ -1,13 +1,17 @@
 const express = require ('express');
 const mongoose = require ('mongoose');
 const path = require('path');
+const config = require('config');
 const app = express();
-const items = require('./routes/api/items');
+
 //Body parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const db = require ('./config/keys').mongoURI;
+mongoose.set('useFindAndModify', false);
+mongoose.set('useCreateIndex', true);
+
+const db = config.get('mongoURI');
 mongoose.connect(db,{
     useNewUrlParser:true,
     useUnifiedTopology:true
@@ -15,7 +19,9 @@ mongoose.connect(db,{
 .catch((err) => console.log(err));
 
 //Use Routes
-app.use('/api/items', items);
+app.use('/api/items', require('./routes/api/items'));
+app.use('/api/users', require('./routes/api/users'));
+app.use('/api/auth', require('./routes/api/auth'));
 
 //Serve static assets if in production
 if (process.env.NODE_ENV==='production') {
@@ -26,6 +32,7 @@ if (process.env.NODE_ENV==='production') {
       res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html'))
   });
 }
+
 
 
 const Port = process.env.PORT || 5000;
